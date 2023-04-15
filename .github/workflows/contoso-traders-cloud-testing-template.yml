@@ -6,10 +6,6 @@ on:
       environmentName:
         required: true
         type: string
-      configureAzureAD:
-        required: false
-        type: boolean
-        default: false
 
 env:
   # You can specify any location for `SUB_DEPLOYMENT_REGION`. It's the region where the deployment
@@ -48,82 +44,11 @@ env:
   USER_ASSIGNED_MANAGED_IDENTITY_NAME: contoso-traders-mi-kv-access
 
 jobs:
-  configure-azure-ad-app:
-    runs-on: ubuntu-22.04
-    environment: ${{ inputs.environmentName }}
-    outputs:
-      azureAdAppClientId: ${{ steps.get-azureAdAppClientId.outputs.azureAdAppClientId }}
-      azureAdAppObjId: ${{ steps.get-azureAdAppObjId.outputs.azureAdAppObjId }}
-    if: ${{ inputs.configureAzureAD == true }}
-    concurrency:
-      group: configure-azure-ad-app
-      cancel-in-progress: true
-    steps:
-      - name: checkout code
-        uses: actions/checkout@v3
-      - name: azure login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.SERVICEPRINCIPAL }}
-      # create the Azure AD application (and update it if it already exists).
-      # note: This is an idempotent operation.
-      - name: create/update azure active directory app
-        uses: azure/CLI@v1
-        with:
-          inlineScript: az ad app create --display-name ${{ env.AZURE_AD_APP_NAME}}${{ vars.SUFFIX }} --sign-in-audience AzureADandPersonalMicrosoftAccount
-      - name: get azure ad app's object id
-        uses: azure/CLI@v1
-        id: get-azureAdAppObjId
-        with:
-          inlineScript: echo "azureAdAppObjId"="$(az ad app list --display-name ${{ env.AZURE_AD_APP_NAME }}${{ vars.SUFFIX }} --query [].id -o tsv)" >> $GITHUB_OUTPUT
-      - name: get azure ad app's client id
-        uses: azure/CLI@v1
-        id: get-azureAdAppClientId
-        with:
-          inlineScript: echo "azureAdAppClientId"="$(az ad app list --display-name ${{ env.AZURE_AD_APP_NAME }}${{ vars.SUFFIX }} --query [].appId -o tsv)" >> $GITHUB_OUTPUT
-      - name: register app as a spa
-        uses: azure/CLI@v1
-        with:
-          inlineScript: |
-            az rest \
-              --method PATCH \
-              --uri https://graph.microsoft.com/v1.0/applications/${{ steps.get-azureAdAppObjId.outputs.azureAdAppObjId }} \
-              --headers 'Content-Type=application/json' \
-              --body '{"spa":{"redirectUris":["https://localhost:3000/authcallback","http://localhost:3000/authcallback","https://staging.contosotraders.com/authcallback","https://production.contosotraders.com/authcallback","https://cloudtesting.contosotraders.com/authcallback"]}}'
-      - name: enable issuance of id, access tokens
-        uses: azure/CLI@v1
-        with:
-          inlineScript: az ad app update --id ${{ steps.get-azureAdAppObjId.outputs.azureAdAppObjId }} --enable-access-token-issuance true --enable-id-token-issuance true
-      - name: enable email claim in access token
-        uses: azure/CLI@v1
-        with:
-          inlineScript: az ad app update --id ${{ steps.get-azureAdAppObjId.outputs.azureAdAppObjId }} --optional-claims "{\"accessToken\":[{\"name\":\"email\",\"essential\":false}]}"
-      # note: requesting MS Graph permissions in Azure AD app unfortunately isn't idempotent.
-      # Even, if you have already requested the permissions, it'll keep adding to the list of requested permissions until you hit limit on max permissions requested.
-      # Details: https://github.com/Azure/azure-cli/issues/24512
-      - name: delete any requested Microsoft Graph permissions
-        uses: azure/CLI@v1
-        with:
-          inlineScript: |
-            az ad app permission delete \
-              --id ${{ steps.get-azureAdAppObjId.outputs.azureAdAppObjId }} \
-              --api ${{ env.MSGRAPH_API_ID }}
-      - name: request Microsoft Graph permissions
-        uses: azure/CLI@v1
-        with:
-          inlineScript: |
-            az ad app permission add \
-              --id ${{ steps.get-azureAdAppObjId.outputs.azureAdAppObjId }} \
-              --api ${{ env.MSGRAPH_API_ID }} \
-              --api-permissions ${{ env.MSGRAPH_API_PERMISSION_USER_READ }} ${{ env.MSGRAPH_API_PERMISSION_EMAIL }}
-
   provision:
     runs-on: ubuntu-22.04
-    needs: [configure-azure-ad-app]
     environment:
       name: ${{ inputs.environmentName }}
       url: https://${{ steps.get-uiCdnEndpoint.outputs.uiCdnEndpoint }}
-    if: success() || needs.configure-azure-ad-app.result == 'skipped'
     outputs:
       cartsApiEndpoint: ${{ steps.get-cartsApiEndpoint.outputs.cartsApiEndpoint }}
       productsApiEndpoint: ${{ steps.get-productsApiEndpoint.outputs.productsApiEndpoint }}
@@ -411,9 +336,6 @@ jobs:
         run: echo "REACT_APP_APIURLSHOPPINGCART"="https://${{ steps.get-cartsApiEndpoint.outputs.cartsApiEndpoint }}/v1" >> $GITHUB_ENV
       - name: set REACT_APP_APIURL
         run: echo "REACT_APP_APIURL"="https://${{ steps.get-productsApiEndpoint.outputs.productsApiEndpoint }}/v1" >> $GITHUB_ENV
-      - name: set REACT_APP_B2CCLIENTID
-        if: ${{ inputs.configureAzureAD == true }}
-        run: echo "REACT_APP_B2CCLIENTID"="${{ needs.configure-azure-ad-app.outputs.azureAdAppClientId }}" >> $GITHUB_ENV
       - uses: actions/setup-node@v3
         with:
           node-version: 18
@@ -442,16 +364,6 @@ jobs:
         uses: azure/CLI@v1
         with:
           inlineScript: echo UI CDN endpoint accessible at https://$(az keyvault secret show --vault-name ${{ env.KV_NAME }}${{ vars.SUFFIX }} --name uiCdnEndpoint --query value -o tsv)
-      - name: register auth callback (UI CDN)
-        if: ${{ inputs.configureAzureAD == true }}
-        uses: azure/CLI@v1
-        with:
-          inlineScript: |
-            az rest \
-              --method PATCH \
-              --uri https://graph.microsoft.com/v1.0/applications/${{ needs.configure-azure-ad-app.outputs.azureAdAppObjId }} \
-              --headers 'Content-Type=application/json' \
-              --body '{"spa":{"redirectUris":["https://localhost:3000/authcallback","http://localhost:3000/authcallback","https://staging.contosotraders.com/authcallback","https://production.contosotraders.com/authcallback","https://cloudtesting.contosotraders.com/authcallback","https://${{ steps.get-uiCdnEndpoint.outputs.uiCdnEndpoint }}/authcallback"]}}'
 
   load-tests-with-chaos-products-api:
     needs: [provision]
@@ -632,42 +544,3 @@ jobs:
                 "value": "120"
               }
             ]
-
-  playwright-tests-ui:
-    needs: [provision]
-    timeout-minutes: 20
-    runs-on: ubuntu-22.04
-    environment: ${{ inputs.environmentName }}
-    if: ${{ inputs.environmentName == 'staging' }}
-    container:
-      image: mcr.microsoft.com/playwright:v1.32.0-focal
-    defaults:
-      run:
-        working-directory: src/ContosoTraders.Ui.Website
-    env:
-      AADUSERNAME: ${{secrets.AADUSERNAME}}
-      AADPASSWORD: ${{secrets.AADPASSWORD}}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: npm
-          cache-dependency-path: src/ContosoTraders.Ui.Website/package-lock.json
-      - name: Set env variables for testing endpoints
-        run: |
-          echo "REACT_APP_APIURLSHOPPINGCART"="https://${{ needs.provision.outputs.cartsApiEndpoint }}/v1" >> $GITHUB_ENV
-          echo "REACT_APP_APIURL"="https://${{ needs.provision.outputs.productsApiEndpoint }}/v1" >> $GITHUB_ENV
-          echo "REACT_APP_BASEURLFORPLAYWRIGHTTESTING"="https://${{ needs.provision.outputs.uiCdnEndpoint }}" >> $GITHUB_ENV
-          echo "REACT_APP_B2CCLIENTID"="${{ needs.provision.outputs.azureAdAppClientId }}" >> $GITHUB_ENV
-      - name: install dependencies
-        run: npm ci
-      - name: run playwright tests
-        run: HOME=/root npx playwright test    
-      - name: upload playwright report
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: playwright-report
-          path: src/ContosoTraders.Ui.Website/playwright-report/
-          retention-days: 30

@@ -12,12 +12,3 @@ jobs:
     secrets: inherit
     with:
       environmentName: staging
-      configureAzureAD: ${{ vars.ENABLE_LOGIN == 'true' }}
-
-  production:
-    needs: staging
-    uses: ./.github/workflows/contoso-traders-cloud-testing-template.yml
-    secrets: inherit
-    with:
-      environmentName: production
-      configureAzureAD: ${{ vars.ENABLE_LOGIN == 'true' }}
