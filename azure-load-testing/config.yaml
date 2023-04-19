@@ -1,0 +1,27 @@
+displayName: Contoso traders staging
+testPlan: Contoso-traders.jmx
+description: 'CICD test from GitHub Actions'
+engineInstances: 2
+testId: ccc4bbfd-ff96-4dd9-901f-3093b96af7d2
+splitAllCSVs: False
+configurationFiles:
+- Samsung phone.jpg
+failureCriteria: []
+secrets:
+- name: clientId
+  value: https://contosotradersloadtest.vault.azure.net/secrets/clientId
+- name: tenantId
+  value: https://contosotradersloadtest.vault.azure.net/secrets/tenantId
+- name: username
+  value: https://contosotradersloadtest.vault.azure.net/secrets/username
+- name: password
+  value: https://contosotradersloadtest.vault.azure.net/secrets/password
+env:
+- name: cartsAPI
+  value: contoso-traders-cartsstg311.victoriousmeadow-873e0da2.eastus.azurecontainerapps.io
+- name: productsAPI
+  value: contoso-traders-productsstg311.eastus.cloudapp.azure.com
+- name: contoso_threads
+  value: 500
+- name: contoso_duration
+  value: 420
