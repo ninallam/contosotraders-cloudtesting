@@ -610,7 +610,7 @@ jobs:
         enable-AzPSSession: true 
     
     - name: Install dependencies
-      working-directory: sample/
+      working-directory: demo-scripts/mpt-samples/
       run: npm ci
       
     - name: Run Playwright tests
