@@ -1,0 +1,25 @@
+displayName: Contoso Traders
+testPlan: contoso-traders-locust.py
+description: ''
+engineInstances: 3
+testId: 4e812758-7552-4d1e-a6e7-ae0c2d322076
+testType: Locust
+splitAllCSVs: False
+regionalLoadTestConfig:
+- region: eastus2
+  engineInstances: 1
+- region: westus2
+  engineInstances: 1
+- region: centralus
+  engineInstances: 1
+failureCriteria: []
+env:
+- name: LOCUST_USERS
+  value: 500
+- name: LOCUST_RUN_TIME
+  value: 600
+- name: LOCUST_SPAWN_RATE
+  value: 4
+autoStop:
+  errorPercentage: 90
+  timeWindow: 60
