@@ -2,9 +2,9 @@ name: contoso-traders-cloud-testing
 
 on:
   workflow_dispatch:
-  push:
-    branches: ["main"]
-    paths-ignore: ["docs/**", "demo-scripts/**"]
+  # push:
+  #   branches: ["main"]
+  #   paths-ignore: ["docs/**", "demo-scripts/**"]
 
 env:
   ACR_NAME: contosotradersacr
@@ -593,7 +593,7 @@ jobs:
 
 
   playwright-tests-ui:
-  #  needs: [provision]
+    needs: [provision]
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
@@ -630,7 +630,7 @@ jobs:
         retention-days: 10
 
   load-test-products:
-    needs: [playwright-tests-ui]
+    needs: [provision, playwright-tests-ui]
     runs-on: ubuntu-22.04
     concurrency:
       group: load-test-products
@@ -653,7 +653,7 @@ jobs:
           resourceGroup: nikita-rg
 
   chaos-aks-with-load:
-    needs: [playwright-tests-ui, load-test-products]
+    needs: [provision, playwright-tests-ui, load-test-products]
     runs-on: ubuntu-latest
     concurrency:
       group: chaos-aks-with-load
