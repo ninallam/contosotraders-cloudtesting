@@ -648,7 +648,7 @@ jobs:
         uses: Azure/load-testing@v1
         with:
           # Path of the YAML file. Should be fully qualified path or relative to the default working directory
-          loadtestConfigFile: ./loadtests/config.yaml
+          loadtestConfigFile: demo-scripts/azure-load-testing/config.yaml
           loadtestResource: IgniteDemoALT
           resourceGroup: nikita-rg
 
