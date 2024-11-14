@@ -176,7 +176,7 @@ jobs:
         with:
           script: |
             const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-            await delay(60220);
+            await delay(620);
         # uses: azure/CLI@v1
         # with:
         #   inlineScript: az keyvault set-policy -n ${{ env.KV_NAME }}${{ vars.SUFFIX }} -g ${{ env.RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }} --secret-permissions get list set --object-id $(az ad sp show --id $(az account show --query "user.name" -o tsv) --query "id" -o tsv)
@@ -186,7 +186,7 @@ jobs:
         with:
           script: |
             const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-            await delay(160220);
+            await delay(1600);
         # uses: azure/CLI@v1
         # with:
         #   inlineScript: |
@@ -199,7 +199,7 @@ jobs:
         with:
           script: |
             const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-            await delay(420220);
+            await delay(4220);
         # uses: azure/sql-action@v2.2
         # with:
         #   connection-string: Server=tcp:${{ env.PRODUCTS_DB_SERVER_NAME }}${{ vars.SUFFIX }}.database.windows.net,1433;Initial Catalog=${{ env.PRODUCTS_DB_NAME }};Persist Security Info=False;User ID=${{ env.PRODUCTS_DB_USER_NAME }};Password=${{ secrets.SQLPASSWORD }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;
@@ -209,7 +209,7 @@ jobs:
         with:
           script: |
             const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-            await delay(90220);
+            await delay(9020);
         # uses: azure/CLI@v1
         # with:
         #   inlineScript: az storage blob sync --account-name '${{ env.PRODUCT_IMAGES_STORAGE_ACCOUNT_NAME }}${{ vars.SUFFIX }}' -c '${{ env.PRODUCT_DETAILS_CONTAINER_NAME }}' -s 'src/ContosoTraders.Api.Images/product-details'
@@ -218,7 +218,7 @@ jobs:
         with:
           script: |
             const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-            await delay(100220);
+            await delay(1020);
         # uses: azure/CLI@v1
         # with:
         #   inlineScript: az storage blob sync --account-name '${{ env.PRODUCT_IMAGES_STORAGE_ACCOUNT_NAME }}${{ vars.SUFFIX }}' -c '${{ env.PRODUCT_LIST_CONTAINER_NAME }}' -s 'src/ContosoTraders.Api.Images/product-list'
@@ -249,7 +249,7 @@ jobs:
         with:
           script: |
             const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-            await delay(4820);
+            await delay(480);
         # uses: azure/docker-login@v1
         # with:
         #   login-server: ${{ env.ACR_NAME }}${{ vars.SUFFIX }}.azurecr.io
@@ -266,11 +266,11 @@ jobs:
       # section #2: deploy the carts api
       #
       - name: docker build
-        run: sleep 100s
+        run: sleep 58s
         shell: bash
         # run: docker build src -f ./src/ContosoTraders.Api.Carts/Dockerfile -t ${{ env.ACR_NAME }}${{ vars.SUFFIX }}.azurecr.io/${{ env.CARTS_ACR_REPOSITORY_NAME }}:latest -t ${{ env.ACR_NAME }}${{ vars.SUFFIX }}.azurecr.io/${{ env.CARTS_ACR_REPOSITORY_NAME }}:${{ github.sha }}
       - name: docker push (to acr)
-        run: sleep 200s
+        run: sleep 100s
         shell: bash
         # run: docker push --all-tags ${{ env.ACR_NAME }}${{ vars.SUFFIX }}.azurecr.io/${{ env.CARTS_ACR_REPOSITORY_NAME }}
       - name: deploy to aca
@@ -282,7 +282,7 @@ jobs:
         #     az config set extension.use_dynamic_install=yes_without_prompt
         #     az containerapp update -n ${{ env.CARTS_ACA_NAME }}${{ vars.SUFFIX }} -g ${{ env.RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }} --image ${{ env.ACR_NAME }}${{ vars.SUFFIX }}.azurecr.io/${{ env.CARTS_ACR_REPOSITORY_NAME }}:${{ github.sha }}
       - name: deploy to aca (internal)
-        run: sleep 400s
+        run: sleep 70s
         shell: bash
         # if: ${{ vars.DEPLOYPRIVATEENDPOINTS == 'true' }}
         # uses: azure/CLI@v1
@@ -309,15 +309,15 @@ jobs:
         # with:
         #   version: v3.9.0
       - name: docker build
-        run: sleep 100s
+        run: sleep 17s
         shell: bash
         # run: docker build src -f ./src/ContosoTraders.Api.Products/Dockerfile -t ${{ env.ACR_NAME }}${{ vars.SUFFIX }}.azurecr.io/${{ env.PRODUCTS_ACR_REPOSITORY_NAME }}:latest -t ${{ env.ACR_NAME }}${{ vars.SUFFIX }}.azurecr.io/${{ env.PRODUCTS_ACR_REPOSITORY_NAME }}:${{ github.sha }}
       - name: docker push (to acr)
-        run: sleep 200s
+        run: sleep 76s
         shell: bash
         # run: docker push --all-tags ${{ env.ACR_NAME }}${{ vars.SUFFIX }}.azurecr.io/${{ env.PRODUCTS_ACR_REPOSITORY_NAME }}
       - name: setup kubectl
-        run: sleep 180s
+        run: sleep 14s
         shell: bash
         # uses: azure/setup-kubectl@v3
       - name: create kubernetes secret (acr password)
@@ -345,7 +345,7 @@ jobs:
         #   secret-name: ${{ env.AKS_SECRET_NAME_KV_ENDPOINT }}
         #   string-data: '{ "${{ env.AKS_SECRET_NAME_KV_ENDPOINT }}" : "https://${{ env.KV_NAME }}${{ vars.SUFFIX }}.vault.azure.net/" }'
       - name: create kubernetes secret (managed identity client id)
-        run: sleep 104s
+        run: sleep 64s
         shell: bash
         # uses: Azure/k8s-create-secret@v4
         # with:
@@ -381,7 +381,7 @@ jobs:
         #   imagepullsecrets: ${{ env.AKS_SECRET_NAME_ACR_PASSWORD }}
         #   force: true
       - name: apply service manifest
-        run: sleep 102s
+        run: sleep 72s
         shell: bash
         # uses: Azure/k8s-deploy@v4
         # with:
@@ -390,7 +390,7 @@ jobs:
         #   force: true
       # setup chaos mesh
       - name: apply namespace manifest (chaos-testing)
-        run: sleep 106s
+        run: sleep 66s
         shell: bash
         # uses: Azure/k8s-deploy@v4
         # with:
@@ -407,7 +407,7 @@ jobs:
         #   ${{ steps.install-helm.outputs.helm-path }} upgrade --install chaos-mesh chaos-mesh/chaos-mesh --namespace=chaos-testing --set chaosDaemon.runtime=containerd --set chaosDaemon.socketPath=/run/containerd/containerd.sock
       # create the ingress controller
       - name: create ingress controller
-        run: sleep 60s
+        run: sleep 30s
         shell: bash
         # run: |
         #   az aks get-credentials --resource-group ${{ env.RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }} --name ${{ env.AKS_CLUSTER_NAME }}${{ vars.SUFFIX }}
@@ -444,7 +444,7 @@ jobs:
         #   manifests: ./src/ContosoTraders.Api.Products/Manifests/NamespaceCertManager.yaml
         #   force: true
       - name: install cert-manager
-        run: sleep 60s
+        run: sleep 50s
         shell: bash
         # run: |
         #   az aks get-credentials --resource-group ${{ env.RESOURCE_GROUP_NAME }}${{ vars.SUFFIX }} --name ${{ env.AKS_CLUSTER_NAME }}${{ vars.SUFFIX }}
