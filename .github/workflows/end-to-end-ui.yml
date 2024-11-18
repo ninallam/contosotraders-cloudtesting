@@ -33,8 +33,8 @@ jobs:
       
     - name: Run Playwright tests
       working-directory: demo-scripts/mpt-samples/
-      env:
-        # Regional endpoint for Microsoft Playwright Testing
-        PLAYWRIGHT_SERVICE_URL: ${{ secrets.PLAYWRIGHT_SERVICE_URL }}
-        PLAYWRIGHT_SERVICE_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+      # env:
+      #   # Regional endpoint for Microsoft Playwright Testing
+      #   PLAYWRIGHT_SERVICE_URL: ${{ secrets.PLAYWRIGHT_SERVICE_URL }}
+      #   PLAYWRIGHT_SERVICE_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
       run: npx playwright test
