@@ -27,7 +27,7 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [['json', { outputFile: 'results.json' }],['list'], ['@microsoft/mpt-reporter']],
+  reporter: [['json', { outputFile: 'results.json' }],['list']],
 
  // reporter: ['@microsoft/mpt-reporter']
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
