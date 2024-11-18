@@ -1,0 +1,40 @@
+name: contoso-traders-cloud-testing
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths-ignore: ["docs/**", "demo-scripts/**"]
+
+
+permissions:
+  id-token: write
+  contents: read
+jobs:
+ playwright-tests-ui:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16
+    - name: Login to Azure with AzPowershell (enableAzPSSession true) 
+      uses: azure/login@v2 
+      with: 
+        client-id: ${{ secrets.AZURE_CLIENT_ID }} 
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}  
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}  
+        enable-AzPSSession: true 
+    
+    - name: Install dependencies
+      working-directory: demo-scripts/mpt-samples/
+      run: npm ci
+      
+    - name: Run Playwright tests
+      working-directory: demo-scripts/mpt-samples/
+      env:
+        # Regional endpoint for Microsoft Playwright Testing
+        PLAYWRIGHT_SERVICE_URL: ${{ secrets.PLAYWRIGHT_SERVICE_URL }}
+        PLAYWRIGHT_SERVICE_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+      run: npx playwright test -c playwright.service.config.ts --workers=1
