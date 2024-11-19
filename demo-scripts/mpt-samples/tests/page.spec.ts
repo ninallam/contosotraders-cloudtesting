@@ -38,6 +38,7 @@ const carousel = page.getByTestId('carousel');
 // await expect(carousel.getByText('The Fastest, Most Powerful Xbox.')).toBeVisible();
 await carousel.getByRole('button', { name: 'Next' }).click();
 await expect(carousel.getByText('Xbox Wireless Controller - Mineral Camo Special edition')).toBeVisible();
+await expect(carousel.getByText('Xbox Wireless Controller - Mineral Camo Special edition')).toBeVisible();
 await carousel.getByRole('button', { name: 'Previous' }).click();
 });
 
@@ -46,6 +47,7 @@ const carousel = page.getByTestId('carousel');
 await carousel.getByRole('button', { name: 'carousel indicator 2' }).click();
 // await expect(carousel.getByText('Xbox Wireless Controller - Mineral Camo Limited edition')).toBeVisible();
 await carousel.getByRole('button', { name: 'carousel indicator 1' }).click();
+await expect(carousel.getByText('The Fastest, Most Powerful Xbox Ever.')).toBeVisible();
 await expect(carousel.getByText('The Fastest, Most Powerful Xbox Ever.')).toBeVisible();
 });
 
